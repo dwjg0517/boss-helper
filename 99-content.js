@@ -69,10 +69,26 @@
             // 页面逻辑
             if (location.pathname.includes('/jobs')) {
                 Core.log('✅ BOSS海投助手增强版已加载');
-                Core.log('💡 支持：岗位/地点 + 薪资/经验/学历/公司规模/行业/排除关键词');
-                Core.log('👉 设置筛选条件后点击「启动海投」开始自动投递');
-            } else if (location.pathname.includes('/chat')) {
-                Core.log('✅ BOSS海投助手已加载，点击"开始智能聊天"自动回复HR消息');
+                Core.log('💡 判断逻辑：AI 读每条 JD → 算匹配度 → 70 分以上自动投并发出定制招呼语');
+                Core.log('👉 设置筛选条件后点击「启动海投」开始');
+
+                // 断线自愈：如果上次是"运行中"状态（页面被 BOSS 反爬重载、
+                // 电脑休眠唤醒、浏览器内存回收后恢复），自动接着跑。
+                // 投过的岗位有指纹记录不会重投，额度上限也仍生效。
+                const resume = __BH__.resumeIfNeeded;
+                if (typeof resume === 'function') {
+                    try {
+                        const resumed = resume();
+                        if (resumed) {
+                            Core.log('   ↳ 已自动续跑，你可以继续去忙别的');
+                        }
+                    } catch (e) {
+                        console.error('自动续跑失败:', e);
+                    }
+                }
+            } else {
+                // 已收窄职责：本工具只处理岗位列表页，聊天页流程已移除
+                Core.log('⚠️ 请在 BOSS 职位列表页使用（本工具只负责投递，不处理聊天）');
             }
         } catch (error) {
             console.error('初始化失败:', error);

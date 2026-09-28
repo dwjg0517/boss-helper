@@ -14,7 +14,7 @@
         "https://www.zhipin.com/web/*",
         "https://www.zhipin.com/web/geek/*"
       ],
-      "js": ["00-shared.js", "00a-local-config.js", "01-config.js", "02-state.js", "05-selectors.js", "10-filters.js", "20-core.js", "30-controls.js", "40-ui.js", "lib/pdf.min.js", "99-content.js"],
+      "js": ["00-shared.js", "00a-local-config.js", "01-config.js", "02-state.js", "05-selectors.js", "10-filters.js", "15-match.js", "20-core.js", "30-controls.js", "35-statusbar.js", "36-pending.js", "40-ui.js", "lib/pdf.min.js", "99-content.js"],
       "css": ["styles.css"],
       "run_at": "document_idle"
     }

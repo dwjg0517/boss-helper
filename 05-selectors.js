@@ -100,6 +100,15 @@
         toolbarButton: '.toolbar-btn',                             // unverified
         resumeSendConfirm: 'span.btn-sure-v2',                     // unverified
         resumeSendButtonText: '发简历',                            // unverified
+
+        // ── 直接发送定制消息用（2026-09-29 新增）──
+        // 用法变了：求职者取消了 BOSS 自带的打招呼语，点「立即沟通」后
+        // 页面直接进入聊天框。所以不再点「常用语」发固定话术，
+        // 而是往输入框里填**针对该条 JD 生成的招呼语**再发送。
+        chatInput: ['#chat-input', '.chat-input', '[contenteditable="true"]'],  // unverified
+        // 发送后出现"已发送"的判据：自己那侧最后一条消息
+        selfMessageItem: 'li.message-item.item-myself',            // unverified
+        selfMessageText: '.text span',                             // unverified
     };
 
     // ===== 扩展自身注入的 DOM（这些是我们自己创建的，不存在漂移风险）=====

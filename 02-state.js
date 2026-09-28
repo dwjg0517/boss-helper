@@ -67,7 +67,34 @@
             company: '',
             description: '',
             requirements: ''
-        }
+        },
+
+        // ══════════════════════════════════════════════════════════════
+        //  JD 匹配相关状态（2026-09-29 新增）
+        // ══════════════════════════════════════════════════════════════
+        // 匹配结果缓存：jobId → { lo, hi, tierLabel, reason, mustHave, gap, risk, ... }
+        // 目的：同一条 JD 不重复分析（省 token、也保证结果稳定）
+        matchCache: {},
+        // 待确认列表：分数不到自动投递线、但也没到淘汰线的岗位
+        // 全部保留、按分数从高到低展示，等用户回来勾选
+        pendingJobs: [],
+        // 已投递的详细档案（比 appliedJobs 的指纹多很多信息）
+        appliedLog: [],
+        // 本次运行的统计
+        runStats: {
+            startedAt: null,
+            applied: 0,
+            pending: 0,
+            skipped: 0,
+            failed: 0,
+            // 当日计数（用于 80 家封顶）
+            todayApplied: 0,
+            todayDate: ''
+        },
+        // 卡住的判定：最后一次有进展的时间戳
+        lastProgressAt: null,
+        // 已跳过的不再重试（如"继续沟通"的岗位、招呼语发送失败的）
+        skipList: {}
     };
 
     // 从localStorage加载所有设置
@@ -124,6 +151,42 @@
         const raw = localStorage.getItem('bossResumeRawText');
         if (raw) state.resume.rawText = raw;
     } catch (e) { /* 保持无全文 */ }
+
+    // ── JD 匹配相关（2026-09-29 新增）──
+    // 同样逐项 try/catch：任一项损坏不影响其余功能。
+    try {
+        const mc = localStorage.getItem('bossMatchCache');
+        if (mc) state.matchCache = JSON.parse(mc);
+    } catch (e) { console.warn('[BOSS海投助手] 加载匹配缓存失败，已重置:', e.message); }
+
+    try {
+        const pj = localStorage.getItem('bossPendingJobs');
+        if (pj) state.pendingJobs = JSON.parse(pj);
+    } catch (e) { console.warn('[BOSS海投助手] 加载待确认列表失败，已重置:', e.message); }
+
+    try {
+        const al = localStorage.getItem('bossAppliedLog');
+        if (al) state.appliedLog = JSON.parse(al);
+    } catch (e) { console.warn('[BOSS海投助手] 加载投递档案失败，已重置:', e.message); }
+
+    try {
+        const rs = localStorage.getItem('bossRunStats');
+        if (rs) Object.assign(state.runStats, JSON.parse(rs));
+    } catch (e) { console.warn('[BOSS海投助手] 加载运行统计失败，已用默认值:', e.message); }
+
+    try {
+        const sl = localStorage.getItem('bossSkipList');
+        if (sl) state.skipList = JSON.parse(sl);
+    } catch (e) { console.warn('[BOSS海投助手] 加载跳过列表失败，已重置:', e.message); }
+
+    // 跨日重置当日计数（否则昨天的用量会一直占着今天的额度）
+    try {
+        const today = new Date().toISOString().slice(0, 10);
+        if (state.runStats.todayDate !== today) {
+            state.runStats.todayDate = today;
+            state.runStats.todayApplied = 0;
+        }
+    } catch (e) { /* 忽略 */ }
 
     const elements = {
         panel: null,

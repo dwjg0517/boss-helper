@@ -37,30 +37,74 @@
         },
 
         _applyTheme() {
-            const colors = this.currentPageType === this.PAGE_TYPES.JOB_LIST
-                ? { primary: '#4285f4', secondary: '#f5f7fa', accent: '#e8f0fe', neutral: '#6b7280' }
-                : { primary: '#34a853', secondary: '#f0fdf4', accent: '#dcfce7', neutral: '#6b7280' };
+            // 极简白（2026-09-29 重定）：以中性色为主，只用一个蓝色作强调。
+            // 原来 job_list 与 chat 两套配色（蓝/绿）已无意义 —— 工具现在
+            // 只处理岗位列表页，聊天页流程已移除。
+            const colors = {
+                primary: '#2563eb',      // 强调色（按钮、进度条）
+                secondary: '#ffffff',    // 面板底色
+                accent: '#e5e7eb',       // 分隔线、边框
+                neutral: '#6b7280',      // 次要文字
+                // 状态色（卡住变色用）
+                ok: '#10b981',           // 运行中
+                warn: '#f59e0b',         // 疑似卡住
+                danger: '#ef4444',       // 已卡死
+                ink: '#111827',          // 主文字
+            };
             CONFIG.COLORS = colors;
-            document.documentElement.style.setProperty('--primary-color', colors.primary);
-            document.documentElement.style.setProperty('--secondary-color', colors.secondary);
-            document.documentElement.style.setProperty('--accent-color', colors.accent);
-            document.documentElement.style.setProperty('--neutral-color', colors.neutral);
-            const rgb = this._hexToRgb(colors.primary);
-            document.documentElement.style.setProperty('--primary-rgb', rgb);
+            const root = document.documentElement.style;
+            root.setProperty('--primary-color', colors.primary);
+            root.setProperty('--secondary-color', colors.secondary);
+            root.setProperty('--accent-color', colors.accent);
+            root.setProperty('--neutral-color', colors.neutral);
+            root.setProperty('--ok-color', colors.ok);
+            root.setProperty('--warn-color', colors.warn);
+            root.setProperty('--danger-color', colors.danger);
+            root.setProperty('--ink-color', colors.ink);
+            root.setProperty('--primary-rgb', this._hexToRgb(colors.primary));
         },
 
         createControlPanel() {
             if (document.getElementById('boss-pro-panel')) {
                 document.getElementById('boss-pro-panel').remove();
             }
+            // 移除旧状态条的定时器，避免重建面板时定时器泄漏
+            if (__BH__.StatusBar && __BH__.StatusBar.destroy) __BH__.StatusBar.destroy();
+
+            // 移除旧状态条/待确认列表的定时器与引用，避免重建面板时泄漏
+            if (__BH__.StatusBar && __BH__.StatusBar.destroy) __BH__.StatusBar.destroy();
+            if (__BH__.PendingList && __BH__.PendingList.destroy) __BH__.PendingList.destroy();
+
             elements.panel = this._createPanel();
             const header = this._createHeader();
+            // 运行状态条：进度 + 预计时间 + 当前动作 + 卡住变色
+            // 放在 header 之后 —— 这是求职者最需要一眼看到的东西
+            const statusBar = (__BH__.StatusBar && __BH__.StatusBar.create)
+                ? __BH__.StatusBar.create()
+                : null;
             const controls = this._createPageControls();
+            // 待确认列表：低于自动投递线的岗位攒在这里，按分数排序等他勾
+            const pending = (__BH__.PendingList && __BH__.PendingList.create)
+                ? __BH__.PendingList.create()
+                : null;
             elements.log = this._createLogger();
             const footer = this._createFooter();
-            elements.panel.append(header, controls, elements.log, footer);
+
+            const parts = [header];
+            if (statusBar) parts.push(statusBar);
+            parts.push(controls);
+            if (pending) parts.push(pending);
+            parts.push(elements.log, footer);
+            elements.panel.append(...parts);
             document.body.appendChild(elements.panel);
+            // 面板已入 DOM —— 此时才能做首次真正渲染
+            // （状态条与待确认列表在创建阶段无法渲染，见各自 create() 的注释）
+            if (__BH__.StatusBar && __BH__.StatusBar.render) __BH__.StatusBar.render();
+            if (__BH__.PendingList && __BH__.PendingList.refresh) __BH__.PendingList.refresh();
             this._makeDraggable(elements.panel);
+            // 面板内容可能高于可视区，允许滚动
+            elements.panel.style.maxHeight = 'calc(100vh - 60px)';
+            elements.panel.style.overflowY = 'auto';
 
             if (!document.getElementById('boss-settings-dialog')) {
                 const settingsDialog = this._createSettingsDialog();
