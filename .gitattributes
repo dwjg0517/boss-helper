@@ -1,0 +1,18 @@
+# 压缩产物必须按二进制处理 —— 否则 git 的行尾转换（CRLF/LF）会改动
+# min.js 内部字节，可能导致 PDF.js 校验失败或运行异常
+lib/*.min.js binary
+
+# 图片同理
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+
+# 文本文件统一用 LF 存储（避免跨平台行尾差异造成整文件 diff）
+*.js text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+
+# Windows 批处理必须保持 CRLF，否则 cmd 解析可能出错
+*.bat text eol=crlf

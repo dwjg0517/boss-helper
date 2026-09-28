@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "BOSS海投助手",
+  "version": "5.0.0",
+  "description": "BOSS直聘自动海投助手 - PDF简历解析+JD智能排除+防重复投递+AI打招呼语",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.zhipin.com/web/*",
+        "https://www.zhipin.com/web/geek/*"
+      ],
+      "js": ["00-shared.js", "00a-local-config.js", "01-config.js", "02-state.js", "05-selectors.js", "10-filters.js", "20-core.js", "30-controls.js", "40-ui.js", "lib/pdf.min.js", "99-content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.zhipin.com/*",
+    "https://spark-api-open.xf-yun.com/*",
+    "https://api.deepseek.com/*",
+    "https://open.bigmodel.cn/*",
+    "https://api.moonshot.cn/*",
+    "https://dashscope.aliyuncs.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["lib/pdf.min.js", "lib/pdf.worker.min.js"],
+      "matches": ["https://www.zhipin.com/*"]
+    }
+  ]
+}

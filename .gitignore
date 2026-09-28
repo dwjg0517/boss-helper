@@ -1,0 +1,9 @@
+# 本地私有配置（可能含凭据，永不入库）
+00a-local-config.local.js
+
+# 变异测试运行时备份（正常结束会自行删除）
+*.mutation-backup
+
+# 系统
+Thumbs.db
+desktop.ini
